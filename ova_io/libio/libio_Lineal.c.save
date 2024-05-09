@@ -1,0 +1,82 @@
+#include <float.h>
+#include <jni.h>
+
+/*
+ * Class:     libio_Lineal
+ * Method:    lineal
+ * Signature: (DD[D)[D
+ */
+JNIEXPORT jdoubleArray JNICALL Java_libio_Lineal_lineal
+  (JNIEnv * env1, jobject obj1, jdouble x1, jdouble x2, jdoubleArray restricciones){
+ jsize len = (*env1)->GetArrayLength(env1, restricciones);
+    jsize len_restriccion = len / 3;
+    jdouble * restriccion = (*env1)->GetDoubleArrayElements(env1, restricciones, NULL);
+
+    double restriccion_x1[len_restriccion];
+    double restriccion_x2[len_restriccion];
+    double restriccion_z[len_restriccion];
+
+    int j = 0;
+         for(int i=0;i<len;i+=3){
+         restriccion_x1[j]=restriccion[i];
+         j++;
+ }
+    int k=0;
+         for(int i=1;i<len;i+=3){
+         restriccion_x2[k]=restriccion[i];
+         k++;
+ }
+       int l=0;
+         for(int i=2;i<len;i+=3){
+         restriccion_z[l]=restriccion[i];
+         l++;
+}
+	double ecuaciones[len];
+	for (int i = 0; i < len_restriccion; i++) {
+        if (restriccion_x1[i] != 0) {
+            restriccion_x1[i] = restriccion_z[i] / restriccion_x1[i];
+        }
+        if (restriccion_x2[i] != 0) {
+            restriccion_x2[i] = restriccion_z[i] / restriccion_x2[i];
+        }
+    }
+	double ecuaciones_x[len/2];
+	for(int i=0;i<len/2;i+=2){
+	ecuaciones_x[i]=restriccion_x1[i];
+	ecuaciones_x[i+1]=0;
+	}
+
+	double ecuaciones_y[len/2];
+        for(int i=0;i<len/2;i+=2){
+        ecuaciones_y[i+1]=restriccion_x2[i];
+        ecuaciones_y[i]=0;
+        }
+	double ecuaciones[len_restriccion];
+
+
+    double fin[3];
+
+	fin[0] = restriccion_x2[0];
+        fin[1] = restriccion_x2[1] ;
+        fin[2] = restriccion_x2[2];
+    double solucion = DBL_MAX;
+
+    for (int i = 0; i < len_restriccion; i++) {
+        double respuesta = (restriccion_x1[i] * x1) + (restriccion_x2[i] * x2);
+        if (respuesta < solucion) {
+            solucion = respuesta;
+          //  fin[0] = restriccion_x1[i] * x1;
+          //  fin[1] = restriccion_x2[i] * x2;
+          //  fin[2] = solucion;
+        }else{
+	//fin[0]=9999;
+}
+    }
+
+    (*env1)->ReleaseDoubleArrayElements(env1, restricciones, restriccion, 0);
+
+    jdoubleArray result = (*env1)->NewDoubleArray(env1, 3);
+    (*env1)->SetDoubleArrayRegion(env1, result, 0, 3, fin);
+    return result;
+}
+
