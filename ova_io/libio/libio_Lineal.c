@@ -1,5 +1,6 @@
 #include <float.h>
 #include <jni.h>
+#include <math.h>
 
 /*
  * Class:     libio_Lineal
@@ -86,25 +87,41 @@ JNIEXPORT jdoubleArray JNICALL Java_libio_Lineal_lineal
     double solucion = DBL_MAX;
 	double x,y;
 	int cont_solucion=0;
+	int check=0;
 	Interseccion posibles_soluciones[(len_restriccion*(len_restriccion-1))/2];
 	for (int i = 0; i < len_restriccion - 1; i++) {
-         for (int j = i + 1; j < len_restriccion; j++) {
+         for (int j = i+ 1; j < len_restriccion; j++) {
             double m1, m2;
 	    m1=(ecuacion[i].y2-ecuacion[i].y1)/(ecuacion[i].x2-ecuacion[i].x1);
 	    m2=(ecuacion[j].y2-ecuacion[j].y1)/(ecuacion[j].x2-ecuacion[j].x1);
-       
-     if(m1!=m2){
-             x = -((rest[i].B * rest[j].C - rest[j].B * rest[i].C) / (rest[i].A * rest[j].B - rest[j].A * rest[i].B));
-   	     y = -((rest[i].C * rest[j].A - rest[j].C * rest[i].A) / (rest[i].A * rest[j].B - rest[j].A * rest[i].B));
-	     if((2*x+y)<=90 && (x+y)>=50 && x<=10){
- 	     posibles_soluciones[cont_solucion].x=x;
-	     posibles_soluciones[cont_solucion].y=y
+            if(m1!=m2){
+             x = fabs(((rest[i].B * rest[j].C - rest[j].B * rest[i].C) / (rest[i].A * rest[j].B - rest[j].A * rest[i].B)));
+   	     y = fabs(((rest[i].C * rest[j].A - rest[j].C * rest[i].A) / (rest[i].A * rest[j].B - rest[j].A * rest[i].B)));
+	     y=(rest[i].A*rest[j].C-rest[i].C*rest[j].A)/(rest[i].A*rest[j].B-rest[i].B*rest[j].A);
+	     x=(rest[i].C-rest[i].B*y)/rest[i].A;
+	     check=0;
+	     for(int k=0;k<len_restriccion;k++){
+	     if(((x*rest[k].A + y*rest[k].B) <= rest[k].C)){
+ 	     check++;
+	     }
+	     if(check==len_restriccion){
+	     posibles_soluciones[cont_solucion].x=x;
+             posibles_soluciones[cont_solucion].y=y;
 	     cont_solucion++;
+	     }
 	     }
 	   }
 	}
     }
-	 double fin[len_restriccion*2];
+int co=1;
+int coo=0;
+	 double fin[(len_restriccion*(len_restriccion-1))];
+	for(int i=0;i<len_restriccion*2;i+=2){
+	fin[i]=posibles_soluciones[coo].x;
+	fin[co]=posibles_soluciones[coo].y;
+	coo++;
+	co+=2;
+}
 
     for (int i = 0; i < len_restriccion; i++) {
         double respuesta = (restriccion_x1[i] * x1) + (restriccion_x2[i] * x2);
@@ -120,8 +137,8 @@ JNIEXPORT jdoubleArray JNICALL Java_libio_Lineal_lineal
 
     (*env1)->ReleaseDoubleArrayElements(env1, restricciones, restriccion, 0);
 
-    jdoubleArray result = (*env1)->NewDoubleArray(env1, 6);
-    (*env1)->SetDoubleArrayRegion(env1, result, 0, 6, fin);
+    jdoubleArray result = (*env1)->NewDoubleArray(env1, (len_restriccion*(len_restriccion-1)));
+    (*env1)->SetDoubleArrayRegion(env1, result, 0, (len_restriccion*(len_restriccion-1)), fin);
     return result;
 }
 
