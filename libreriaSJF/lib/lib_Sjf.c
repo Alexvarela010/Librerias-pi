@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "lib_Sjf.h"
-#include <string.h> // Agrega esta línea para incluir la cabecera de string
+#include <string.h> 
 
 // Estructura para representar un proceso
 typedef struct {
