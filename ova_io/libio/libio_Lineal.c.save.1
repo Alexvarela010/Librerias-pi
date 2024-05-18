@@ -28,18 +28,15 @@ double C;
 
 JNIEXPORT jdoubleArray JNICALL Java_libio_Lineal_lineal
   (JNIEnv * env1, jobject obj1,jstring min_max, jdouble x1, jdouble x2, jdoubleArray restricciones){
-
-	const char *comparar = "minimizar";
-	jsize len = (*env1)->GetArrayLength(env1, restricciones);
-	jsize len_restriccion = len / 4;
-	jdouble * restriccion = (*env1)->GetDoubleArrayElements(env1, restricciones, NULL);
+ jsize len = (*env1)->GetArrayLength(env1, restricciones);
+    jsize len_restriccion = len / 4;
+    jdouble * restriccion = (*env1)->GetDoubleArrayElements(env1, restricciones, NULL);
 
         double restriccion_x1[len_restriccion];
         double restriccion_x2[len_restriccion];
 	double restriccion_z[len_restriccion];
 	double mayor_menor[len_restriccion];
-	double xfob=x1;
-	double yfob=x2;
+
 	Ecuacionlineales ecuacion[len_restriccion];
 	restr rest[len];
 	int j=0;
@@ -88,9 +85,9 @@ JNIEXPORT jdoubleArray JNICALL Java_libio_Lineal_lineal
 	Interseccion posibles_soluciones[((len_restriccion*(len_restriccion-1))/2)+len_restriccion];
 	int check=0;
 	for(int i=0;i<((len_restriccion*(len_restriccion-1))/2)+len_restriccion;i++){
-	posibles_soluciones[i].x=-2.0;
-	posibles_soluciones[i].y=-2.0;
-	}
+posibles_soluciones[i].x=-2.0;
+posibles_soluciones[i].y=-2.0;
+}
 	int cont_solucion=0;
         double ecuaciones[len];
 	for (int i = 0; i < len_restriccion; i++) {
@@ -100,42 +97,37 @@ JNIEXPORT jdoubleArray JNICALL Java_libio_Lineal_lineal
         if (ecuacion[i].y2 != 0) {
             ecuacion[i].y2 = restriccion_z[i] / ecuacion[i].y2;
         }
-
-        check=0;
+	check=0;
              for(int k=0;k<len_restriccion;k++){
-             if(mayor_menor[k]==1.0){
-             if(((ecuacion[i].x1*rest[k].A)<=rest[k].C)&&ecuacion[i].x1>=0){
+	     if(mayor_menor[k]==1.0){
+	     if(((ecuacion[i].x1*rest[k].A + ecuacion[i].y1*rest[k].B) <= rest[k].C)&&ecuacion[i].x1>0){
              check++;
              }
-             }else{
-             if(((ecuacion[i].x1*rest[k].A)>=rest[k].C)&&ecuacion[i].x1>=0){
+	     }else{
+	     if(((ecuacion[i].x1*rest[k].A + ecuacion[i].y1*rest[k].B) >= rest[k].C)&&ecuacion[i].x1>0){
              check++;
              }
-             }
-             }
-	     if(check==len_restriccion){
+	     }
+             }if(check==len_restriccion){
              posibles_soluciones[cont_solucion].x=ecuacion[i].x1;
              posibles_soluciones[cont_solucion].y=ecuacion[i].y1;
              cont_solucion++;
              }
-	     check=0;
-	     for(int k=0;k<len_restriccion;k++){
-             if(mayor_menor[k]==1.0){
-             if(((ecuacion[i].y2*rest[k].B)<=rest[k].C)&&ecuacion[i].y2>=0){
-             check++;
-             }
-             }else{
-             if(((ecuacion[i].y2*rest[k].B)>=rest[k].C)&&ecuacion[i].y2>=0){
+	check=0;
+             for(int k=0;k<len_restriccion;k++){
+	     if(mayor_menor[k]==1.0){
+             if(((ecuacion[i].x2*rest[k].A + ecuacion[i].y2*rest[k].B) <= rest[k].C)&&ecuacion[i].y2>=0){
              check++;
              }
              }
-             }
-	     if(check==len_restriccion){
+             if(check==len_restriccion){
              posibles_soluciones[cont_solucion].x=ecuacion[i].x2;
              posibles_soluciones[cont_solucion].y=ecuacion[i].y2;
              cont_solucion++;
-            }
-        }
+             }
+
+    }
+    double solucion = DBL_MAX;
 	double x,y;
 	for (int i = 0; i < len_restriccion - 1; i++) {
          for (int j = i+ 1; j < len_restriccion; j++) {
@@ -149,14 +141,8 @@ JNIEXPORT jdoubleArray JNICALL Java_libio_Lineal_lineal
 	     x=(rest[i].C-rest[i].B*y)/rest[i].A;
 	     check=0;
 	     for(int k=0;k<len_restriccion;k++){
-	     if(mayor_menor[k]==1.0){
 	     if(((x*rest[k].A + y*rest[k].B) <= rest[k].C)&&x>=0&&y>=0){
  	     check++;
-	     }
-	     }else{
-             if(((x*rest[k].A + y*rest[k].B) >= rest[k].C)&&x>=0&&y>=0){
-             check++;
-             }
 	     }
 	     }if(check==len_restriccion){
 	     posibles_soluciones[cont_solucion].x=x;
@@ -166,48 +152,39 @@ JNIEXPORT jdoubleArray JNICALL Java_libio_Lineal_lineal
 	     }
 	   }
 	}
-	int size=0;
-	for(int i=0;i<(len_restriccion * (len_restriccion-1))+len_restriccion*2;i++){
-        if((posibles_soluciones[i].x==-2.0)||posibles_soluciones[i].y==-2.0){
+int size=0;
+for(int i=0;i<(len_restriccion * (len_restriccion-1))+len_restriccion*2;i++){
+        if(posibles_soluciones[i].x==-2.0){
         break;}
         size+=2;
-	}
-	int co=1;
-	int conn=0;
-	double fin[size];
+}
+int co=1;
+int conn=0;
+double fin[size];
 	for(int i=0;i<size;i++){
 	fin[conn]=posibles_soluciones[i].x;
 	fin[co]=posibles_soluciones[i].y;
 	conn+=2;
 	co+=2;
-	}
-	double solucion=0;
-	if(strcmp(max_min,comparar)==0){
-        solucion = DBL_MAX;
-	double respuesta=0;
-	for(int i=1;i<size;i+=2){
-	respuesta=(fin[i-1]*xfob)+(fin[i]*yfob);
-	if (respuesta < solucion) {
+}
+if(strcmp(max_min,"aaa")){
+//fin[0]=43433.4;
+}
+
+    for (int i = 0; i < len_restriccion; i++) {
+        double respuesta = (restriccion_x1[i] * x1) + (restriccion_x2[i] * x2);
+        if (respuesta < solucion) {
             solucion = respuesta;
-	//fin[0]=fin[i-1]*xfob;
-	//fin[1]=fin[i]*yfob;
-	}
-	}
+          //  fin[0] = restriccion_x1[i] * x1;
+          //  fin[1] = restriccion_x2[i] * x2;
+          //  fin[2] = solucion;
         }else{
-	solucion = DBL_MIN;
-        double respuesta=0;
-        for(int i=1;i<size;i+=2){
-        respuesta=(fin[i-1]*xfob)+(fin[i]*yfob);
-        if (respuesta > solucion) {
-            solucion = respuesta;
-	//fin[0]=fin[i-1]*xfob;
-	//fin[1]=fin[i]*yfob;
-        }
-        }
-	}
-	//fin[0]=solucion;
+	//fin[0]=9999;
+}
+    }
+
     (*env1)->ReleaseDoubleArrayElements(env1, restricciones, restriccion, 0);
-    (*env1)->ReleaseStringUTFChars(env1, min_max, max_min);
+
     jdoubleArray result = (*env1)->NewDoubleArray(env1, size);
     (*env1)->SetDoubleArrayRegion(env1, result, 0, size, fin);
     return result;
