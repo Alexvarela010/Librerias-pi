@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     libio_Lineal
  * Method:    lineal
- * Signature: (DD[D)[D
+ * Signature: (Ljava/lang/String;DD[D)[D
  */
 JNIEXPORT jdoubleArray JNICALL Java_libio_Lineal_lineal
-  (JNIEnv *, jobject, jdouble, jdouble, jdoubleArray);
+  (JNIEnv *, jobject, jstring, jdouble, jdouble, jdoubleArray);
 
 #ifdef __cplusplus
 }
