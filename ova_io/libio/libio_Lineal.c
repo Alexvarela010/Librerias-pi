@@ -2,7 +2,6 @@
 #include <jni.h>
 #include <math.h>
 #include <string.h>
-
 /*
  * Class:     libio_Lineal
  * Method:    lineal
@@ -167,49 +166,60 @@ JNIEXPORT jdoubleArray JNICALL Java_libio_Lineal_lineal
 	   }
 	}
 	int size=0;
-	for(int i=0;i<(len_restriccion * (len_restriccion-1))+len_restriccion*2;i++){
-        if((posibles_soluciones[i].x==-2.0)||posibles_soluciones[i].y==-2.0){
-        break;}
-        size+=2;
-	}
+	int cerrar_ciclo=0;
+        for(int i=0;i<(len_restriccion * (len_restriccion-1))+len_restriccion*2;i++){
+           if(posibles_soluciones[i].x!=-2.0&&posibles_soluciones[i].y!=-2.0){
+              for(int j=0;j<len_restriccion;j++){
+                 if(posibles_soluciones[i].x==rest[j].A&&posibles_soluciones[i].y==rest[j].B){
+                    cerrar_ciclo=1;
+                     break;
+                        }
+                    }
+                if(cerrar_ciclo==1){
+                break;
+                }
+           size+=2;
+          }
+        }
 	int co=1;
 	int conn=0;
-	double fin[size];
+	double fin[size+1];
 	for(int i=0;i<size;i++){
+	if((posibles_soluciones[i].x!=-2.0&&posibles_soluciones[i].y!=2.0)){
 	fin[conn]=posibles_soluciones[i].x;
 	fin[co]=posibles_soluciones[i].y;
 	conn+=2;
 	co+=2;
 	}
-	double solucion=0;
+	}
+	double solucion[3];
 	if(strcmp(max_min,comparar)==0){
-        solucion = DBL_MAX;
+        solucion[2] = DBL_MAX;
 	double respuesta=0;
 	for(int i=1;i<size;i+=2){
 	respuesta=(fin[i-1]*xfob)+(fin[i]*yfob);
-	if (respuesta < solucion) {
-            solucion = respuesta;
-	//fin[0]=fin[i-1]*xfob;
-	//fin[1]=fin[i]*yfob;
+	if (respuesta < solucion[2]) {
+            solucion[2] = respuesta;
+	solucion[0]=fin[i-1];
+	solucion[1]=fin[i];
 	}
 	}
         }else{
-	solucion = DBL_MIN;
+	solucion[2] = DBL_MIN;
         double respuesta=0;
         for(int i=1;i<size;i+=2){
         respuesta=(fin[i-1]*xfob)+(fin[i]*yfob);
-        if (respuesta > solucion) {
-            solucion = respuesta;
-	//fin[0]=fin[i-1]*xfob;
-	//fin[1]=fin[i]*yfob;
+        if (respuesta > solucion[2]) {
+            solucion[2] = respuesta;
+	solucion[0]=fin[i-1];
+	solucion[1]=fin[i];
         }
         }
 	}
-	//fin[0]=solucion;
     (*env1)->ReleaseDoubleArrayElements(env1, restricciones, restriccion, 0);
     (*env1)->ReleaseStringUTFChars(env1, min_max, max_min);
-    jdoubleArray result = (*env1)->NewDoubleArray(env1, size);
-    (*env1)->SetDoubleArrayRegion(env1, result, 0, size, fin);
+    jdoubleArray result = (*env1)->NewDoubleArray(env1, 3);
+    (*env1)->SetDoubleArrayRegion(env1, result, 0, 3, solucion);
     return result;
 }
 
